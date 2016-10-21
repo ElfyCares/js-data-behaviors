@@ -1,0 +1,123 @@
+<link rel="import" href="../polymer/polymer.html">
+
+<script type="text/javascript">
+
+  /**
+   * @polymerBehavior Elfy.JSDataRecordBehavior
+   */
+  Elfy.JSDataRecordBehavior = {
+    _observeRecordInStore() {
+      let record = this[this.recordName]
+      if (!record) return
+
+      let onChangeNotifyPath = function(record, changes) {
+        // Todo: granular notifications
+        this.notifyPath(this.recordName, {})
+        this.notifyPath(this.recordName, record)
+      }.bind(this)
+
+      record.on('change', onChangeNotifyPath)
+    },
+
+    _delete() {
+      let record = this[this.recordName]
+      if (record) {
+        record.destroy()
+        this.notifyPath(this.recordName, null)
+      }
+    },
+
+    _save() {
+      if (this.partialName && this.noPersist) {
+        return
+      }
+
+      let record = this[this.recordName]
+      if (this._validate(record)) {
+        this._requesting()
+        /* Check record.id to see if it's a create or update action */
+        let success = record.id ? this._recordUpdated.bind(this) : this._recordCreated.bind(this)
+        return record.save().then(success, this._respondedWithError.bind(this))
+      } else {
+        this._validationError()
+      }
+    },
+
+    _addPartial() {
+      // TODO: Generalize validations and open appropriate JSDATA issue
+      let partial = this[this.partialName]
+      this.set(`${this.recordName}.${this.partialName}`, partial)
+    },
+
+    _clearErrors() {
+      if (this._errors) {
+        this._errors.forEach((error) => {
+          this.$$(error) && (this.$$(error).invalid = false);
+        })
+        this._errors = []
+      }
+
+      this.errorMessage = '';
+    },
+
+    _validate(record) {
+      this._clearErrors()
+
+      try {
+        if (this.partialName) {
+          this._addPartial()
+        }
+        var errors = record.validate()
+
+        if (!errors) {
+          return record
+        } else {
+          this._setNonValidInputsInvalid(errors)
+          return false
+        }
+
+      } catch(e) {
+        this._setNonValidInputsInvalid(e.error)
+        return false
+      }
+    },
+
+    _setNonValidInputsInvalid(errors) {
+      if (!errors) {
+        return
+      }
+
+      this._errors = typeof this._errors !== 'undefined' ?  this._errors : [];
+
+      errors.forEach((error) => {
+        let path = error.path.split('.')
+        key = '#' + path.slice(-1)[0]
+        this.$$(key) && (this.$$(key).invalid = true);
+        this._errors.push(key)
+      })
+    },
+
+    _requesting() {
+    },
+
+    _recordCreated() {
+    },
+
+    _recordUpdated() {
+    },
+
+    _validationError() {
+      console.log('Validation error: ', this._errors)
+    },
+
+    _respondedWithError(error) {
+      console.log(error)
+      this.errorMessage = 'Sorry, something went wrong!';
+    },
+
+    _close() {
+      this._clearErrors()
+      this.close()
+    },
+  }
+</script>

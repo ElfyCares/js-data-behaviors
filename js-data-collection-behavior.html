@@ -1,0 +1,85 @@
+<link rel="import" href="../polymer/polymer.html">
+
+<script type="text/javascript">
+
+  /**
+   * @polymerBehavior Elfy.JSDataCollectionBehavior
+   */
+  Elfy.JSDataCollectionBehavior = {
+    JSData: {
+      collectionName: null,
+      collectionQuery: null,
+      collections: null,
+    },
+
+    attached() {
+      this.async(function() {
+        this._loadData()
+      }.bind(this))
+    },
+
+    _loadFreshData(cls, collectionName, query) {
+      let collection = App.Store.getCollection(collectionName)
+      cls.findAll(query).then((records) => {
+        this[collectionName] = records
+        this._collectionLoaded(collectionName)
+      })
+      this._setupNotifyForCollection(collection, collectionName)
+    },
+
+    _loadData() {
+      let Store = App.Store
+      if (!this.JSData.collections) {
+        let collectionName = this.JSData.collectionName
+        let query = this.JSData.collectionQuery || {}
+        this._loadSingleCollection(Store, collectionName, query)
+      } else {
+        this.JSData.collections.forEach((c) => {
+          let collectionName = c.name
+          let query = c.query || {}
+          this._loadSingleCollection(Store, collectionName, query)
+        })
+      }
+    },
+
+    _loadSingleCollection(Store, collectionName, query) {
+      if (!collectionName) return
+      let collection = Store.getCollection(collectionName)
+      var self = this
+      Store.findAll(collectionName, query).then((records) => {
+        self._collectionLoaded(collectionName, records)
+        self.set(collectionName, records)
+      })
+      this._setupNotifyForCollection(collection, collectionName)
+    },
+
+    _setupNotifyForCollection(collection, collectionName) {
+      let onChangeNotifyPath = function(collection, collectionName) {
+        this[collectionName] = collection.getAll()
+        this.notifyPath(collectionName)
+      }.bind(this, collection, collectionName)
+
+      collection.on('all', onChangeNotifyPath)
+
+      let clearListener = function(source, event, handler) {
+        source.off(event, handler)
+      }.bind(collection, 'all', onChangeNotifyPath)
+      this._cleanUpFunctions || (this._cleanUpFunctions = [])
+      this._cleanUpFunctions.push(clearListener)
+    },
+
+    _clearListeners() {
+      this._cleanUpFunctions.forEach((cleanUpFunction) => {
+        cleanUpFunction()
+      })
+    },
+
+    _collectionLoaded(name, records) {
+
+    },
+
+    dettached() {
+      this._clearListeners()
+    }
+  }
+</script>
