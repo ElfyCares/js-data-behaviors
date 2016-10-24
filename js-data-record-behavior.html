@@ -22,7 +22,7 @@
     _delete() {
       let record = this[this.recordName]
       if (record) {
-        record.destroy()
+        record.destroy().then(this._recordDeleted.bind(this), this._respondedWithError.bind(this))
         this.notifyPath(this.recordName, null)
       }
     },
@@ -99,11 +99,11 @@
 
     _requesting() {
     },
-
     _recordCreated() {
     },
-
     _recordUpdated() {
+    },
+    _recordDeleted() {
     },
 
     _validationError() {
