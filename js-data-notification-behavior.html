@@ -1,0 +1,21 @@
+<link rel="import" href="../polymer/polymer.html">
+
+<script type="text/javascript">
+  window.Elfy = window.Elfy || {};
+  /**
+   * @polymerBehavior Elfy.JSDataNotificationBehavior
+   */
+  Elfy.JSDataNotificationBehavior = {
+    _observeRecordInStore(record, name) {
+      if (!record) return
+
+      let onChangeNotifyPath = function(record, changes) {
+        // Todo: granular notifications
+        this.notifyPath(name, {})
+        this.notifyPath(name, record)
+      }.bind(this)
+
+      record.on('change', onChangeNotifyPath)
+    },
+  }
+</script>
