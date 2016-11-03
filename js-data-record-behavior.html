@@ -37,7 +37,7 @@
         this._requesting()
         /* Check record.id to see if it's a create or update action */
         let success = record.id ? this._recordUpdated.bind(this) : this._recordCreated.bind(this)
-        return record.save().then(success, this._respondedWithError.bind(this))
+        return record.save().then(success, this._errorResponse.bind(this))
       } else {
         this._validationError()
       }
@@ -108,6 +108,16 @@
 
     _validationError() {
       console.log('Validation error: ', this._errors)
+    },
+
+    _errorResponse(error) {
+      if (error.toString() === "TypeError: Cannot read property 'indexOf' of undefined") {
+        // js-data bug
+        this._recordUpdated(this[this.recordName])
+        this._recordCreated(this[this.recordName])
+      } else {
+        this._respondedWithError(error)
+      }
     },
 
     _respondedWithError(error) {
