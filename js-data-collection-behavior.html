@@ -49,6 +49,7 @@
       Store.findAll(collectionName, query).then((records) => {
         self._collectionLoaded(collectionName, records)
         self.set(collectionName, records)
+        self[collectionName + 'Loaded'] = true
       })
       this._setupNotifyForCollection(collection, collectionName)
     },
