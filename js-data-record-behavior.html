@@ -91,7 +91,7 @@
 
       errors.forEach((error) => {
         let path = error.path.split('.')
-        key = '#' + path.slice(-1)[0]
+        let key = '#' + path.slice(-1)[0]
         this.$$(key) && (this.$$(key).invalid = true);
         this._errors.push(key)
       })
