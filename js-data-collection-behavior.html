@@ -10,6 +10,7 @@
       collectionName: null,
       collectionQuery: null,
       collections: null,
+      noNotify: false,
     },
 
     attached() {
@@ -24,7 +25,9 @@
         this[collectionName] = records
         this._collectionLoaded(collectionName)
       })
-      this._setupNotifyForCollection(collection, collectionName)
+      if (!this.JSData.noNotify) {
+        this._setupNotifyForCollection(collection, collectionName)
+      }
     },
 
     _loadData() {
@@ -51,7 +54,10 @@
         self.set(collectionName, records)
         self[collectionName + 'Loaded'] = true
       })
-      this._setupNotifyForCollection(collection, collectionName)
+      if (!this.JSData.noNotify) {
+        this._setupNotifyForCollection(collection, collectionName)
+      }
+
     },
 
     _setupNotifyForCollection(collection, collectionName) {
